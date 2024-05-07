@@ -1,4 +1,5 @@
 import requests
+import json
 
 # 서버 URL
 base_url = "http://127.0.0.1:8000"
@@ -34,6 +35,7 @@ def test_create_item():
     items_after = get_items()
     print_items("After POST Request", items_after)
 
+# PUT 요청 테스트
 def test_update_item():
     items_before = get_items()
     print_items("Before PUT Request", items_before)
@@ -44,6 +46,7 @@ def test_update_item():
     items_after = get_items()
     print_items("After PUT Request", items_after)
 
+# DELETE 요청 테스트
 def test_delete_item():
     items_before = get_items()
     print_items("Before DELETE Request", items_before)
@@ -54,6 +57,7 @@ def test_delete_item():
     items_after = get_items()
     print_items("After DELETE Request", items_after)
 
+# PATCH 요청 테스트
 def test_patch_item():
     items_before = get_items()
     print_items("Before PATCH Request", items_before)

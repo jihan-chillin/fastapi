@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Request, Header, Cookie
 
 # 로깅설정
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +14,26 @@ items = {
 }
 
 @app.get("/items")
-async def read_items():
+async def read_items(user_agent: str = Header(None), ads_id:str = Cookie(None)):
     logger.info("Fetching all items")
-    return items
+    return {
+        "items" : items, 
+        "User-Agent" : user_agent,
+        "ads_id" : ads_id
+    }
+
+@app.post("/items")
+async def create_item(request:Request):
+    data = await request.json()
+    print(data)
+    return data
+
+@app.post("/login")
+async def login(username:str = Form(...), password : str = Form(...)):
+    return {
+        "username" : username,
+        "password" : password
+    }
 
 @app.post("/items/{item_id}")
 async def create_item(item_id:str, name : str = Form(...)):
