@@ -1,65 +1,54 @@
-import logging
-from fastapi import FastAPI, Form, Request, Header, Cookie
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel
 
-# 로깅설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+app = FastAPI(
+    title="Fastapi Practice",
+    description="Skim Through Basic Fastapi"
+)
 
-app = FastAPI()
+class UserInput(BaseModel):
+    name : str
+    age : int
 
-# 더미
-items = {
-    "1": { "name" : "jihan" },
-    "2" : { "name" : "marathon" }
-}
+class UserResponse(BaseModel):
+    name : str
+    age : int
+    is_adult: bool
 
-@app.get("/items")
-async def read_items(user_agent: str = Header(None), ads_id:str = Cookie(None)):
-    logger.info("Fetching all items")
-    return {
-        "items" : items, 
-        "User-Agent" : user_agent,
-        "ads_id" : ads_id
-    }
+# 에러모델과 성공모델을 다르게 response
+class SuccessModel(BaseModel):
+    message: str
 
-@app.post("/items")
-async def create_item(request:Request):
-    data = await request.json()
-    print(data)
-    return data
+class NotFoundModel(BaseModel):
+    error: str
 
-@app.post("/login")
-async def login(username:str = Form(...), password : str = Form(...)):
-    return {
-        "username" : username,
-        "password" : password
-    }
+class ValidationErrorModel(BaseModel):
+    errors : list
 
-@app.post("/items/{item_id}")
-async def create_item(item_id:str, name : str = Form(...)):
-    items[item_id] = {"name" : name}
-    logger.info(f"item created : {item_id} - {name}")
-    return items[item_id]
+@app.get("/item/{item_id}", response_model=SuccessModel)
+async def get_item(item_id: int):
+    if item_id == 0:
+        # 데이터 베이스 조회 등의 로직
+        raise HTTPException(status_code=404, detail="Item not found")
+    return SuccessModel(message="Item found")
 
-@app.put("/items/{item_id}")
-async def update_item(item_id:str, name:str = Form(...)):
-    items[item_id] = { "name" : name }
-    logger.info(f"Item updated: {item_id} -{name}")
-    return items[item_id]
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc: HTTPException):
+    if exc.status_code == 404:
+        return NotFoundModel(error=exc.detail)
+    elif exc.status_code == 422:
+        return ValidationErrorModel(errors=exc.detail)
+    # 기타 상태 코드에 대한 정리
 
-@app.delete("/items/{item_id}")
-async def delete_item(item_id:str):
-    print(items)
-    if item_id in items:
-        del items[item_id]
-        logger.info(f"Item.deleted: {item_id}")
-        return { "message" : "Item.deleted {item_id}"}
+@app.post("/user", response_model=UserResponse)
+def create_user(user : UserInput):
+    # 입력받은 데이터를 처리
+    is_adult = user.age >= 18
+    # 응답 모델을 사용하여 응답데이터를 구성
+    response_data = UserResponse(
+        name=user.name,
+        age=user.age,
+        is_adult=is_adult,
+    )
 
-@app.patch("/items/{item_id}")
-async def patch_item(item_id:str, name:str = Form(...)):
-    if item_id in items:
-        items[item_id]["name"] = name
-        logger.info(f"Item patched: {item_id} - {name}")
-        return items[item_id]
-    logger.info(f"Item not found: {item_id}")
-    return { "message" : "Item not found"}
+    return response_data
