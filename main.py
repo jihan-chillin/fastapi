@@ -1,11 +1,22 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
+import time
 import httpx
 import asyncio
 
+# metadata
+tags_metadata = [
+    {
+        "name" : "middleware-test",
+        "description" : "미들웨어 테스트를 위한 예시경로입니다."
+    }
+]
+
 app = FastAPI(
     title="Fastapi Practice",
-    description="Skim Through Basic Fastapi"
+    description="Skim Through Basic Fastapi",
+    openapi_tags=tags_metadata
 )
 
 class UserInput(BaseModel):
@@ -26,7 +37,6 @@ class NotFoundModel(BaseModel):
 
 class ValidationErrorModel(BaseModel):
     errors : list
-
 
 async def get_remote_data(url):
     async with httpx.AsyncClient() as client:
