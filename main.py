@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+import httpx
+import asyncio
 
 app = FastAPI(
     title="Fastapi Practice",
@@ -24,6 +26,17 @@ class NotFoundModel(BaseModel):
 
 class ValidationErrorModel(BaseModel):
     errors : list
+
+
+async def get_remote_data(url):
+    async with httpx.AsyncClient() as client:
+        print(url, "url")
+        response = await client.get(url)
+        return response.json()
+
+@app.get("/data")
+async def read_data():
+    external_data = await get_remote_data("https://some-external-api.com/data")
 
 @app.get("/item/{item_id}", response_model=SuccessModel)
 async def get_item(item_id: int):
