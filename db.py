@@ -14,6 +14,8 @@ users = Table(
 
 metadata.create_all(engine)
 
+app = FastAPI()
+
 # 데이터 조회
 # try:
 #     with engine.connect() as conn:
