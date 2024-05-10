@@ -1,20 +1,48 @@
-from fastapi import FastAPI
-from items import router as item_router
-from users import router as user_router
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, select, insert, update, delete
 
-# metadata
-tags_metadata = [
-    {
-        "name" : "items",
-        "description" : "간단한 API 생성을 위해 기본적인 아이템 CRUD태그"
-    }
-]
+# 데이터 베이스와 테이블 생성
+engine = create_engine('sqlite:///./example.db', echo=True)
+metadata = MetaData()
 
-app = FastAPI(
-    title="Fastapi Practice",
-    description="Skim Through Basic Fastapi",
-    openapi_tags=tags_metadata
+users = Table(
+    'users', 
+    metadata, 
+    Column('id', Integer, primary_key=True),
+    Column('name', String),
+    Column('age', Integer)
 )
 
-app.include_router(item_router)
-app.include_router(user_router)
+metadata.create_all(engine)
+
+# 데이터 조회
+try:
+    with engine.connect() as conn:
+        result = conn.execute(select(users))
+        rows = result.fetchall()
+        for row in rows:
+            print(row)
+except Exception as e:
+    print(f"An error occured : {e}")
+
+
+# 데이터 삽입
+with engine.connect() as conn:
+    conn.execute(insert(users).values(name="Alice", age=20))
+    conn.execute(insert(users), [
+        {
+            "name" : "Bob",
+            "age" : 30
+        },
+        {
+            "name" : "Carol",
+            "age" : 25
+        }
+    ])
+    conn.commit() # 변경사항 커밋
+
+
+# 데이터 업데이트
+with engine.connect() as conn:
+    conn.execute(update(users).where(users.c.name == "Alice").values(age=36))
+    
+    conn.commit() # 변경사항 커밋
