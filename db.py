@@ -14,40 +14,37 @@ users = Table(
 
 metadata.create_all(engine)
 
-app = FastAPI()
-
 # 데이터 조회
-# try:
-#     with engine.connect() as conn:
-#         result = conn.execute(select(users))
-#         rows = result.fetchall()
-#         for row in rows:
-#             print(row)
-# except Exception as e:
-    # print(f"An error occured : {e}")
+try:
+    with engine.connect() as conn:
+        result = conn.execute(select(users))
+        rows = result.fetchall()
+        for row in rows:
+            print(row)
+except Exception as e:
+    print(f"An error occured : {e}")
 
 
 # 데이터 삽입
-# with engine.connect() as conn:
-#     conn.execute(insert(users).values(name="Alice", age=20))
-#     conn.execute(insert(users), [
-#         {
-#             "name" : "Bob",
-#             "age" : 30
-#         },
-#         {
-#             "name" : "Carol",
-#             "age" : 25
-#         }
-#     ])
-#     conn.commit() # 변경사항 커밋
+with engine.connect() as conn:
+    conn.execute(insert(users).values(name="Alice", age=20))
+    conn.execute(insert(users), [
+        {
+            "name" : "Bob",
+            "age" : 30
+        },
+        {
+            "name" : "Carol",
+            "age" : 25
+        }
+    ])
+    conn.commit() # 변경사항 커밋
 
 
 # 데이터 업데이트
-# with engine.connect() as conn:
-#     conn.execute(update(users).where(users.c.name == "Alice").values(age=36))
-    
-#     conn.commit() # 변경사항 커밋
+with engine.connect() as conn:
+    conn.execute(update(users).where(users.c.name == "Alice").values(age=36))
+    conn.commit() # 변경사항 커밋
 
 # 연령 그룹별 평균 나이 계산 및 이름으로 정렬
 try:
